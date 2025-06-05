@@ -96,6 +96,55 @@ def imprimir_tabla_transiciones(estados, alfabeto, transiciones):
                 fila += f" | {'--':^10}"
         print(fila)
 
+def visualizar_automata(estados, alfabeto, transiciones, estado_inicial, estados_finales, nombre_archivo="automata"):
+    """Crea una visualización gráfica del autómata usando Graphviz."""
+    try:
+        from graphviz import Digraph
+    except ImportError:
+        print("Para visualizar el autómata, es necesario instalar graphviz:")
+        print("pip install graphviz")
+        print("También necesitas instalar el software Graphviz: https://graphviz.org/download/")
+        return None
+
+    # Crear un nuevo grafo
+    dot = Digraph(comment='Autómata Finito Determinista')
+    dot.attr(rankdir='LR')  # De izquierda a derecha
+    
+    # Agregar un nodo invisible para la flecha inicial
+    dot.attr('node', shape='none', height='0', width='0')
+    dot.node('start', '')
+    
+    # Configurar los nodos (estados)
+    for estado in estados:
+        if estado in estados_finales:
+            dot.attr('node', shape='doublecircle')
+        else:
+            dot.attr('node', shape='circle')
+        dot.node(estado)
+    
+    # Agregar la flecha desde el estado inicial
+    dot.edge('start', estado_inicial)
+    
+    # Agregar las transiciones
+    for origen, trans in transiciones.items():
+        for simbolo, destino in trans.items():
+            # Verificar si destino es una lista, set o un solo estado
+            if isinstance(destino, (list, set, frozenset)):
+                for d in destino:
+                    dot.edge(origen, d, label=simbolo)
+            else:
+                dot.edge(origen, destino, label=simbolo)
+    
+    # Guardar como archivo y mostrar
+    try:
+        # Guardar como PNG
+        dot.render(nombre_archivo, format='png', cleanup=True)
+        print(f"Imagen guardada como {nombre_archivo}.png")
+        return dot
+    except Exception as e:
+        print(f"Error al generar la visualización: {e}")
+        return None
+
 def principal():
     print("=============================================================")
     print("        Conversión de AFND con transiciones vacías a AFD     ")
@@ -183,6 +232,15 @@ def principal():
     print(f"Estados finales: {finales_afd}")
     print("\nTabla de transiciones del AFD:")
     imprimir_tabla_transiciones(estados_afd, alfabeto_afd, transiciones_afd)
+    
+    # Visualizar el autómata
+    visualizar = input("\n¿Desea visualizar gráficamente el autómata? (s/n): ").lower()
+    if visualizar == 's' or visualizar == 'si':
+        nombre_archivo = input("Ingrese un nombre para el archivo de visualización (o presione Enter para 'automata'): ")
+        if not nombre_archivo.strip():
+            nombre_archivo = "automata"
+        visualizar_automata(estados_afd, alfabeto_afd, transiciones_afd, inicial_afd, finales_afd, nombre_archivo)
+        print(f"\nLa imagen del autómata ha sido generada. Puede verla en el archivo {nombre_archivo}.png")
 
 if __name__ == "__main__":
     principal()
