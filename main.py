@@ -106,15 +106,12 @@ def visualizar_automata(estados, alfabeto, transiciones, estado_inicial, estados
         print("También necesitas instalar el software Graphviz: https://graphviz.org/download/")
         return None
 
-    # Crear un nuevo grafo
     dot = Digraph(comment='Autómata Finito Determinista')
-    dot.attr(rankdir='LR')  # De izquierda a derecha
-    
-    # Agregar un nodo invisible para la flecha inicial
+    dot.attr(rankdir='LR') 
+
     dot.attr('node', shape='none', height='0', width='0')
     dot.node('start', '')
     
-    # Configurar los nodos (estados)
     for estado in estados:
         if estado in estados_finales:
             dot.attr('node', shape='doublecircle')
@@ -122,22 +119,17 @@ def visualizar_automata(estados, alfabeto, transiciones, estado_inicial, estados
             dot.attr('node', shape='circle')
         dot.node(estado)
     
-    # Agregar la flecha desde el estado inicial
     dot.edge('start', estado_inicial)
     
-    # Agregar las transiciones
     for origen, trans in transiciones.items():
         for simbolo, destino in trans.items():
-            # Verificar si destino es una lista, set o un solo estado
             if isinstance(destino, (list, set, frozenset)):
                 for d in destino:
                     dot.edge(origen, d, label=simbolo)
             else:
                 dot.edge(origen, destino, label=simbolo)
     
-    # Guardar como archivo y mostrar
     try:
-        # Guardar como PNG
         dot.render(nombre_archivo, format='png', cleanup=True)
         print(f"Imagen guardada como {nombre_archivo}.png")
         return dot
